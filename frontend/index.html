@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Instructor AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #6c63ff;
+  --secondary: #4a90e2;
+  --bg-light: #f8f9fc;
+  --bg-dark: #0f172a; /* Darker background for dark mode */
+  --text-light: #fff;
+  --text-dark: #333;
+  --card-light: #fff;
+  --card-dark: #1e293b; /* Darker card for dark mode */
+  --border-color: #ddd;
+}
+
+/* 🌗 Dark mode variables */
+body.dark {
+  --bg-light: #0f172a;
+  --card-light: #1e293b;
+  --text-dark: #f1f5f9;
+  --primary: #7c3aed;
+  --secondary: #3b82f6;
+  --border-color: #475569; /* Darker border in dark mode */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
+  color: var(--text-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* 🌐 App Container */
+.app-container {
+  display: flex;
+  width: 95%;
+  max-width: 1200px;
+  height: 90vh;
+  background: var(--bg-light);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 📋 Sidebar */
+.sidebar {
+  width: 250px;
+  background: var(--primary);
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  transition: transform 0.4s ease;
+  z-index: 1; /* Ensure sidebar is above main content on smaller screens */
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+  font-size: 1.8em;
+}
+
+.nav-item {
+  padding: 12px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05em;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* 🧠 Main Chat Area */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+header {
+  background: var(--primary);
+  color: var(--text-light);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  min-height: 60px; /* Ensure header has a minimum height */
+}
+
+header h1 {
+  font-size: 1.6em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 1.8em;
+  cursor: pointer;
+  display: none;
+  padding-right: 15px;
+}
+
+.theme-toggle {
+  background: none;
+  border: 2px solid var(--text-light);
+  color: var(--text-light);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-size: 1.2em; /* Larger icon */
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* 💬 Chat */
+.chat-history {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--card-light);
+  transition: background 0.4s ease, color 0.4s ease;
+  scroll-behavior: smooth;
+}
+
+.message-wrapper {
+  display: flex;
+  margin-bottom: 15px;
+  /* Optional: Add a subtle fade-in animation for new messages */
+  opacity: 0;
+  animation: messageFadeIn 0.3s forwards ease-out;
+}
+
+@keyframes messageFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-message { justify-content: flex-end; }
+.ai-message { justify-content: flex-start; }
+
+.message-bubble {
+  max-width: 70%;
+  padding: 12px 18px;
+  border-radius: 20px;
+  line-height: 1.6;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  word-wrap: break-word; /* Ensure long words wrap */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.user-message .message-bubble {
+  background: var(--secondary);
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.ai-message .message-bubble {
+  background: var(--bg-light); /* Lighter bubble for AI */
+  color: var(--text-dark);
+  border: 1px solid var(--border-color); /* Subtle border for AI bubble */
+  border-bottom-left-radius: 5px;
+}
+
+.message-bubble strong {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--primary); /* Use primary color for sender name */
+}
+
+.ai-message .message-bubble strong {
+    color: var(--primary); /* Ensure AI sender name also uses primary color */
+}
+
+/* Loading indicator */
+.loading-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.loading-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
+}
+
+
+/* ✍️ Input */
+.input-area {
+  display: flex;
+  padding: 15px 20px;
+  background: var(--card-light);
+  border-top: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-top-color 0.3s ease;
+}
+
+#queryInput {
+  flex: 1;
+  padding: 12px 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 25px;
+  resize: none;
+  font-size: 1em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  background: var(--card-light); /* Match input background with card */
+  color: var(--text-dark);
+  max-height: 120px; /* Prevent textarea from growing too large */
+}
+
+#queryInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.3);
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  margin-left: 10px;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button:hover {
+  background: var(--secondary);
+  transform: translateY(-1px);
+}
+button:active {
+  transform: translateY(0);
+}
+button:disabled {
+  background: #aab2eb; /* Lighter primary for disabled */
+  cursor: not-allowed;
+  transform: none;
+}
+/* Icons for nav items */
+.nav-item svg {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* 📱 Responsive */
+@media (max-width: 800px) {
+  .app-container {
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 280px; /* Slightly wider sidebar for mobile */
+    transform: translateX(-100%);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  }
+  .sidebar.visible {
+    transform: translateX(0%);
+  }
+
+  .menu-btn {
+    display: block;
+  }
+
+  header h1 {
+    font-size: 1.4em;
+  }
+  .theme-toggle {
+    width: 35px;
+    height: 35px;
+    font-size: 1em;
+  }
+
+  .input-area {
+    padding: 10px 15px;
+  }
+  #queryInput {
+    padding: 10px 15px;
+  }
+  button {
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>Navigation</h2>
+    <div class="nav-item" onclick="newChat()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        New Chat
+    </div>
+    <div class="nav-item" onclick="alert('Saved chats soon!')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        Saved Chats
+    </div>
+    <div class="nav-item" onclick="alert('Settings panel coming soon!')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Settings
+    </div>
+    <div class="nav-item" onclick="alert('DSA Instructor AI — by Mohit! This AI is dedicated to providing clear explanations for Data Structures and Algorithms problems. Any non-DSA questions will be met with a firm, characteristic response!')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        About
+    </div>
+    <div class="nav-item" onclick="alert('You are currently using an AI assistant. There is no session to log out from.')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Logout
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <header>
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <h1>DSA Instructor AI</h1>
+      <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+    </header>
+
+    <div class="chat-history" id="chatHistory">
+      <div class="ai-message message-wrapper">
+        <div class="message-bubble">
+          <strong>AI Instructor:</strong><br>
+          Hello! Ask me anything about Data Structures and Algorithms. Non-DSA questions might get a rude answer 😈
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <textarea id="queryInput" rows="1" placeholder="Type your DSA question..."></textarea>
+      <button id="sendButton" onclick="sendQuery()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        Send
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+const API_KEY = "AIzaSyADOAudGNVB2_cYP5J0NcHuTiJXovxJcC0"; // Replace with your actual Gemini API Key
+const chatHistory = document.getElementById("chatHistory");
+const queryInput = document.getElementById("queryInput");
+const sidebar = document.getElementById("sidebar");
+const body = document.body;
+const sendButton = document.getElementById("sendButton"); // Get send button for disabling
+
+let messageCounter = 0; // To assign unique IDs to messages for updating
+
+function toggleSidebar() {
+  sidebar.classList.toggle("visible"); // Use 'visible' class for better control
+}
+
+function toggleTheme() {
+  body.classList.toggle("dark");
+  const toggle = document.querySelector(".theme-toggle");
+  toggle.textContent = body.classList.contains("dark") ? "☀️" : "🌙";
+}
+
+queryInput.addEventListener("input", () => {
+  queryInput.style.height = "auto";
+  queryInput.style.height = Math.min(queryInput.scrollHeight, 120) + "px"; // Max height 120px
+});
+
+// Function to add a message to the chat history
+function addMessage(text, sender, isTemporary = false) {
+  const msg = document.createElement("div");
+  msg.classList.add("message-wrapper", `${sender}-message`);
+  messageCounter++;
+  msg.id = `msg-${messageCounter}`; // Assign a unique ID
+
+  const bubble = document.createElement("div");
+  bubble.classList.add("message-bubble");
+
+  let content = `<strong>${sender === "user" ? "You:" : "AI Instructor:"}</strong><br>`;
+  if (isTemporary) {
+    // For "Thinking...", use loading dots
+    content += `<div class="loading-dots"><span></span><span></span><span></span></div>`;
+  } else {
+    content += text.replace(/\n/g, '<br>'); // Preserve newlines
+  }
+
+  bubble.innerHTML = content;
+  msg.appendChild(bubble);
+  chatHistory.appendChild(msg);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+  return msg.id; // Return the ID for later updates
+}
+
+// Function to update an existing message (e.g., replace "Thinking..." with actual response)
+function updateMessage(messageId, newText) {
+    const msgElement = document.getElementById(messageId);
+    if (msgElement) {
+        const bubble = msgElement.querySelector('.message-bubble');
+        if (bubble) {
+            bubble.innerHTML = `<strong>AI Instructor:</strong><br>${newText.replace(/\n/g, '<br>')}`;
+        }
+    }
+}
+
+// Function to enable/disable input and button
+function toggleInputState(disabled) {
+    queryInput.disabled = disabled;
+    sendButton.disabled = disabled;
+    if (disabled) {
+        sendButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4V10L16 14"></path></svg> Sending...`;
+    } else {
+        sendButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send`;
+    }
+}
+
+
+async function sendQuery() {
+  const query = queryInput.value.trim();
+  if (!query) return;
+
+  addMessage(query, "user");
+  queryInput.value = "";
+  queryInput.style.height = "auto"; // Reset height after sending
+
+  toggleInputState(true); // Disable input and button
+
+  const loadingMessageId = addMessage("", "ai", true); // Add "Thinking..." message
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: query }] }],
+          generationConfig: {
+              temperature: 0.7, // Add temperature for varied responses
+              maxOutputTokens: 800, // Limit output length
+          },
+          systemInstruction: {
+            parts: [{
+              text: `You are a DSA Instructor. You will only reply to the problem related to Data Structure and Algorithm. You Have to solve query of user in simplest way If user ask any question which is not related to Data Structure and Algorithm, reply him rudely
+              Example: if user ask, how are you
+              you will reply: you dumb ask me some sensible question like this message you can reply anythink
+              you have to reply him rudely if question is not related to Data Structure and Algorithm.
+              else reply him politely with simple explanation`
+            }]
+          }
+        }),
+      }
+    );
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error.message || `API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log(data); // Log full response for debugging
+
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No valid reply from AI. It might be an empty response or an error not caught by res.ok.";
+    updateMessage(loadingMessageId, reply); // Update the loading message with the actual reply
+
+  } catch (e) {
+    console.error("Fetch error:", e);
+    updateMessage(loadingMessageId, `Error: ${e.message}. Please check your API key and network connection.`);
+  } finally {
+    toggleInputState(false); // Enable input and button
+  }
+}
+
+function newChat() {
+  chatHistory.innerHTML = `
+    <div class="ai-message message-wrapper">
+        <div class="message-bubble">
+            <strong>AI Instructor:</strong><br>
+            New chat started. Ask your DSA question!
+        </div>
+    </div>
+  `;
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+  // Make sure sidebar is hidden after starting new chat on mobile
+  if (window.innerWidth <= 800) {
+      sidebar.classList.remove('visible');
+  }
+}
+
+// Initial theme check (optional, if you want to store preference)
+// if (localStorage.getItem('theme') === 'dark') {
+//     body.classList.add('dark');
+//     document.querySelector(".theme-toggle").textContent = "☀️";
+// }
+
+// Initial load check for sidebar visibility on wider screens
+window.addEventListener('load', () => {
+    if (window.innerWidth > 800) {
+        sidebar.classList.add('visible'); // Show sidebar by default on desktop
+    }
+});
+
+// Expose functions to global scope
+window.toggleSidebar = toggleSidebar;
+window.toggleTheme = toggleTheme;
+window.sendQuery = sendQuery;
+window.newChat = newChat;
+</script>
+</body>
+</html>
